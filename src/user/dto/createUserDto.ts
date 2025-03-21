@@ -1,5 +1,6 @@
 import { IsEmail, IsNumber, IsNumberString, IsPhoneNumber, IsString } from "class-validator";
 
+
 export class createUserDto {
     @IsString()
     name: string;
@@ -18,3 +19,4 @@ export class createUserDto {
 
     
 }
+
