@@ -10,14 +10,17 @@ export class User {
     @Column({ length: 250 , nullable: false, unique: true})
     name: string;
 
+    @Column({nullable: true})
+    age: number;
+
     @Column({ length: 250 , nullable: false, unique: true})
     email: string;
 
+    @Column({ length: 10, nullable: false})
+    phone: string;
+
     @Column({ length: 250 , nullable: false})
     password: string;
-
-    @Column({ length: 250 , nullable: true})
-    nickname: string;
 
     @OneToMany(() => Comment, comment => comment.user) // Fixed relationship reference
     comments: Comment[];
