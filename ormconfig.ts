@@ -5,11 +5,11 @@ import { DataSourceOptions } from "typeorm";
 
 const config : DataSourceOptions = {
     type: 'postgres',
-    host: 'localhost',
+    host: process.env.POSTGRES_HOST || 'localhost',
     port: 5432,
-    username: 'hellothere',
-    password: '123456',
-    database: 'mydb',
+    username: process.env.POSTGRES_USER || 'hellothere',
+    password: process.env.POSTGRES_PASSWORD || '123456',
+    database: process.env.POSTGRES_DB || 'mydb',
     synchronize: true,
     entities: [User, Comment, Topic]
 }
