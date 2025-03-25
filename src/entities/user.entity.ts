@@ -1,29 +1,51 @@
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, OneToMany } from "typeorm";
-import { Comment } from "./comment.entity";
 import * as bcrypt from 'bcryptjs';
+import { Ride } from "./ride.entity";
+
+export enum UserRole {
+    CUSTOMER = 'customer',
+    DRIVER = 'driver',
+    MANAGER = 'manager'
+}
 
 @Entity()
 export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ length: 250 , nullable: false, unique: true})
+    @Column({ length: 250, nullable: false, unique: true})
     name: string;
 
     @Column({nullable: true})
     age: number;
 
-    @Column({ length: 250 , nullable: false, unique: true})
+    @Column({ length: 250, nullable: false, unique: true})
     email: string;
 
     @Column({ length: 10, nullable: false})
     phone: string;
 
-    @Column({ length: 250 , nullable: false})
+    @Column({ length: 250, nullable: false})
     password: string;
 
-    @OneToMany(() => Comment, comment => comment.user) // Fixed relationship reference
-    comments: Comment[];
+    @Column({
+        type: 'enum',
+        enum: UserRole,
+        default: UserRole.CUSTOMER
+    })
+    role: UserRole;
+
+    @Column({ nullable: true })
+    licensePlate?: string;
+
+    @Column({ nullable: true })
+    vehicleModel?: string;
+
+    @OneToMany(() => Ride, ride => ride.customer)
+    customerRides: Ride[];
+
+    @OneToMany(() => Ride, ride => ride.driver)
+    driverRides: Ride[];
 
     @BeforeInsert()
     emailToLowerCase() {
@@ -31,7 +53,7 @@ export class User {
     }
 
     @BeforeInsert()
-    hashPassword() {
-        this.password = bcrypt.hashSync(this.password, 10);
+    async hashPassword() {
+        this.password = await bcrypt.hash(this.password, 10);
     }
 }
