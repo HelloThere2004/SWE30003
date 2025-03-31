@@ -1,27 +1,19 @@
-# Build Stage
-FROM node:20-alpine AS builder
+FROM node:20
 
-WORKDIR /app
+# Set working directory early
+WORKDIR /home/app
 
-COPY package*.json ./
-RUN npm ci
-
+# Copy the source code into the container
 COPY . .
+
+# Install dependencies (using npm ci if you have a lockfile)
+RUN npm install
+
+# Build the application
 RUN npm run build
 
-# Production Stage
-FROM node:20-alpine
+# Change to the directory where main.js is located
+WORKDIR /home/app/dist/src
 
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci --only=production
-
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-
-ENV PORT=3000
-EXPOSE ${PORT}
-
-CMD ["node", "dist/src/main"]
-
+# Start the application
+CMD ["node", "main.js"]
