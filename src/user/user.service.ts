@@ -23,7 +23,7 @@ export class UserService {
     }
 
     async create(createUserDto: createUserDto): Promise<object> {
-        const newUser = this.userRepo.create(createUserDto);
+        const newUser = this.userRepo.create(createUserDto); // Handle the role property
         return await this.userRepo.save(newUser);
     }
 
@@ -34,5 +34,14 @@ export class UserService {
             throw new NotFoundException(`User with ID ${id} not found`);
         }
         return updatedUser;
+    }
+
+    async delete(id: number): Promise<object> {
+        const user = await this.userRepo.findOne({ where: { id } });
+        if (!user) {
+            throw new NotFoundException(`User with ID ${id} not found`);
+        }
+        await this.userRepo.remove(user);
+        return { message: `User with ID ${id} has been deleted` };
     }
 }

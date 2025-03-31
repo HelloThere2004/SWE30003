@@ -1,5 +1,5 @@
-import { IsEmail, IsNumber, IsNumberString, IsPhoneNumber, IsString } from "class-validator";
-
+import { IsEmail, IsNumber, IsNumberString, IsOptional, IsPhoneNumber, IsString, IsEnum } from "class-validator";
+import { UserRole } from "../../entities/user.entity";
 
 export class updateUserDto {
     // Define the properties for updateUserDto
@@ -17,4 +17,15 @@ export class updateUserDto {
     
     @IsString()
     password?: string;
+
+    @IsEnum(UserRole)
+    role: UserRole;
+
+    @IsOptional()
+    @IsString()
+    licensePlate?: string;
+
+    @IsOptional()
+    @IsString()
+    vehicleModel?: string;
 }
