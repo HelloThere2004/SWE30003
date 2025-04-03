@@ -22,6 +22,7 @@ export class RideService {
      * @throws UnauthorizedException if the user is not a customer.
      */
     async createRide(createRideDto: CreateRideDto, customerId: number) {
+        console.log('Customer ID:', customerId); // Debugging: Log the customer ID
         const customer = await this.userRepository.findOne({ where: { id: customerId } });
 
         if (!customer) {

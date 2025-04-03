@@ -107,6 +107,7 @@ export class RideController {
         @Param('rideId', ParseIntPipe) rideId: number,
         @CurrentUser() user: any,
     ) {
+        console.log('Authenticated User:', user); // Debugging: Log the authenticated user
         // Validate that the user has the 'driver' role
         if (user.role !== 'driver') {
             throw new UnauthorizedException('Only drivers can accept rides');
