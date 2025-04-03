@@ -18,7 +18,11 @@ export class RideController {
     @UseGuards(AuthGuard)
     @Post('request')
     requestRide(@Body() createRideDto: CreateRideDto, @CurrentUser() user: any) {
-        return this.rideService.createRide(createRideDto, user.id);
+        console.log('Authenticated User:', user); // Debugging: Log the authenticated user
+        if (!user || !user.userId) { // Use user.userId instead of user.id
+            throw new UnauthorizedException('Invalid user or user ID');
+        }
+        return this.rideService.createRide(createRideDto, user.userId); // Pass user.userId
     }
 
     /**
