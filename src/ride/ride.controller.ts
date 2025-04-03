@@ -117,7 +117,7 @@ export class RideController {
             throw new UnauthorizedException('Only drivers can accept rides');
         }
 
-        return this.rideService.assignDriverToRide(rideId, user.id);
+        return this.rideService.assignDriverToRide(rideId, user.userId); // Use user.userId
     }
 
 }

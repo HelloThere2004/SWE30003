@@ -39,7 +39,12 @@ export class AuthService {
         throw new UnauthorizedException('Invalid credentials');
     }
 
-    const token = jwt.sign({ userId: user.id, email: user.email }, 'secretKey', { expiresIn: '1h' });
+    // Include the user's role in the token payload
+    const token = jwt.sign(
+        { userId: user.id, email: user.email, role: user.role }, 
+        'secretKey',
+        { expiresIn: '1h' }
+    );
     return { message: 'Sign-in successful', token };
   }
 
