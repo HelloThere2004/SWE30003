@@ -6,29 +6,64 @@ import { SignUpDto } from './dto/sign-up.dto';
 import { SignInDto } from './dto/sign-in.dto';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class AuthService {
+  private tokenBlacklist: Set<string> = new Set();
+
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    private readonly userService: UserService, // Inject UserService
   ) {}
 
   async signUp(signUpDto: SignUpDto): Promise<object> {
-    const hashedPassword = await bcrypt.hash(signUpDto.password, 10);
-    const newUser = this.userRepo.create({ ...signUpDto, password: hashedPassword });
-    return await this.userRepo.save(newUser);
+    // Reuse the create method from UserService
+    return this.userService.create(signUpDto);
   }
 
   async signIn(signInDto: SignInDto): Promise<object> {
     const { email, password } = signInDto;
     const user = await this.userRepo.findOne({ where: { email } });
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException('Invalid credentials');
+    if (!user) {
+        throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Log the hashed password and the provided password for debugging
+    console.log('Stored Hashed Password:', user.password);
+    console.log('Provided Password:', password);
+
+    if (!(await bcrypt.compare(password, user.password))) {
+        throw new UnauthorizedException('Invalid credentials');
     }
 
     const token = jwt.sign({ userId: user.id, email: user.email }, 'secretKey', { expiresIn: '1h' });
     return { message: 'Sign-in successful', token };
+  }
+
+  /**
+   * Sign out a user.
+   * Adds the token to a blacklist to invalidate it.
+   * @param token - The JWT token to invalidate.
+   * @returns A message confirming the sign-out.
+   */
+  async signOut(token: string): Promise<object> {
+    if (!token) {
+      throw new UnauthorizedException('No token provided');
+    }
+
+    this.tokenBlacklist.add(token);
+    return { message: 'Sign-out successful' };
+  }
+
+  /**
+   * Check if a token is blacklisted.
+   * @param token - The JWT token to check.
+   * @returns True if the token is blacklisted, false otherwise.
+   */
+  isTokenBlacklisted(token: string): boolean {
+    return this.tokenBlacklist.has(token);
   }
 }

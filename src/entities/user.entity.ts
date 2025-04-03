@@ -54,6 +54,8 @@ export class User {
 
     @BeforeInsert()
     async hashPassword() {
+        console.log('Original Password:', this.password); // Log the original password
         this.password = await bcrypt.hash(this.password, 10);
+        console.log('Hashed Password:', this.password); // Log the hashed password
     }
 }

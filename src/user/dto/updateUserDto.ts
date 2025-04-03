@@ -3,6 +3,8 @@ import { UserRole } from "../../entities/user.entity";
 
 export class updateUserDto {
     // Define the properties for updateUserDto
+    // All properties are optional for updating
+
     @IsString()
     name?: string;
     
@@ -19,13 +21,11 @@ export class updateUserDto {
     password?: string;
 
     @IsEnum(UserRole)
-    role: UserRole;
+    role?: UserRole;
 
-    @IsOptional()
     @IsString()
     licensePlate?: string;
 
-    @IsOptional()
     @IsString()
     vehicleModel?: string;
 }
