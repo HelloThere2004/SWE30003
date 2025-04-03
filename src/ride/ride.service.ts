@@ -72,7 +72,6 @@ export class RideService {
         });
     }
 
-
     /**
      * Get all rides associated with a driver.
      * @param driverId - The ID of the driver.
@@ -92,11 +91,15 @@ export class RideService {
      * Update the status of a ride.
      * @param rideId - The ID of the ride.
      * @param status - The new status of the ride.
+     * @param driverId - The ID of the driver updating the status.
      */
-    async updateRideStatus(rideId: number, status: RideStatus) {
-        const ride = await this.rideRepository.findOne({ where: { id: rideId } });
+    async updateRideStatus(rideId: number, status: RideStatus, driverId: number) {
+        const ride = await this.rideRepository.findOne({ where: { id: rideId }, relations: ['driver'] });
         if (!ride) {
             throw new NotFoundException('Ride not found');
+        }
+        if (!ride.driver || ride.driver.id !== driverId) {
+            throw new UnauthorizedException('You can only update the status of rides you have accepted');
         }
         ride.status = status;
         return await this.rideRepository.save(ride);
@@ -107,11 +110,15 @@ export class RideService {
      * @param rideId - The ID of the ride.
      * @param rating - The rating given by the customer.
      * @param feedback - The feedback provided by the customer.
+     * @param customerId - The ID of the customer providing feedback.
      */
-    async provideFeedback(rideId: number, rating: number, feedback: string) {
-        const ride = await this.rideRepository.findOne({ where: { id: rideId } });
+    async provideFeedback(rideId: number, rating: number, feedback: string, customerId: number) {
+        const ride = await this.rideRepository.findOne({ where: { id: rideId }, relations: ['customer'] });
         if (!ride) {
             throw new NotFoundException('Ride not found');
+        }
+        if (ride.customer.id !== customerId) {
+            throw new UnauthorizedException('You can only provide feedback for your own rides');
         }
         ride.rating = rating;
         ride.feedback = feedback;
@@ -142,12 +149,10 @@ export class RideService {
         if (!ride) {
             throw new NotFoundException('Ride not found');
         }
-
         const driver = await this.userRepository.findOne({ where: { id: driverId } });
         if (!driver || driver.role !== 'driver') {
             throw new NotFoundException('Driver not found or invalid role');
         }
-
         ride.driver = driver;
         ride.status = RideStatus.ACCEPTED; // Update status to accepted
         return await this.rideRepository.save(ride);

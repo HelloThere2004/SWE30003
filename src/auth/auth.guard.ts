@@ -10,18 +10,27 @@ export class AuthGuard implements CanActivate {
      */
     canActivate(context: ExecutionContext): boolean {
         const request = context.switchToHttp().getRequest();
-        const token = request.headers.authorization?.split(' ')[1];
+        const authorizationHeader = request.headers.authorization;
 
+        if (!authorizationHeader) {
+            console.error('AuthGuard: No authorization header provided');
+            throw new UnauthorizedException('No authorization header provided');
+        }
+
+        const token = authorizationHeader.split(' ')[1];
         if (!token) {
+            console.error('AuthGuard: No token provided');
             throw new UnauthorizedException('No token provided');
         }
 
         try {
             const decoded = jwt.verify(token, 'secretKey'); // Ensure the secret key matches the one used in AuthService
-            console.log('Decoded Token:', decoded); // Debugging: Log the decoded token
+            console.log('AuthGuard: Decoded Token:', decoded); // Debugging: Log the decoded token
             request.user = decoded; // Attach the decoded user information to the request
+            console.log('AuthGuard: User object attached to request:', request.user); // Debugging: Log the user object
             return true;
         } catch (error) {
+            console.error('AuthGuard: Token verification failed:', error); // Log the error for debugging
             throw new UnauthorizedException('Invalid token');
         }
     }

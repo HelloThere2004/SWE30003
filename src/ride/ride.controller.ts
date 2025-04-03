@@ -35,12 +35,13 @@ export class RideController {
     @UseGuards(AuthGuard)
     @Get('history')
     getCustomerRideHistory(@CurrentUser() user: any) {
+        console.log('Authenticated User:', user); // Debugging: Log the authenticated user
         // Validate that the user has the 'customer' role
         if (user.role !== 'customer') {
             throw new UnauthorizedException('Only customers can view their ride history');
         }
 
-        return this.rideService.getCustomerRideHistory(user.id);
+        return this.rideService.getCustomerRideHistory(user.userId); // Ensure user.userId is passed
     }
 
     /**
@@ -74,13 +75,25 @@ export class RideController {
      * Update the status of a ride.
      * @param rideId - The ID of the ride.
      * @param status - The new status of the ride.
+     * @param user - The currently authenticated driver.
+     * @throws UnauthorizedException if the user is not a driver.
      */
+    @UseGuards(AuthGuard)
     @Put(':rideId/status')
     updateRideStatus(
         @Param('rideId', ParseIntPipe) rideId: number,
         @Body('status') status: RideStatus,
+        @CurrentUser() user: any,
     ) {
-        return this.rideService.updateRideStatus(rideId, status);
+        if (!user) {
+            console.error('RideController: User is undefined in updateRideStatus'); // Log for debugging
+            throw new UnauthorizedException('User not authenticated');
+        }
+        console.log('RideController: Authenticated User:', user); // Debugging: Log the authenticated user
+        if (user.role !== 'driver') {
+            throw new UnauthorizedException('Only drivers can update ride statuses');
+        }
+        return this.rideService.updateRideStatus(rideId, status, user.userId); // Pass user.userId
     }
 
     /**
@@ -88,14 +101,22 @@ export class RideController {
      * @param rideId - The ID of the ride.
      * @param rating - The rating given by the customer.
      * @param feedback - The feedback provided by the customer.
+     * @param user - The currently authenticated customer.
+     * @throws UnauthorizedException if the user is not a customer.
      */
+    @UseGuards(AuthGuard)
     @Put(':rideId/feedback')
     provideFeedback(
         @Param('rideId', ParseIntPipe) rideId: number,
         @Body('rating') rating: number,
         @Body('feedback') feedback: string,
+        @CurrentUser() user: any,
     ) {
-        return this.rideService.provideFeedback(rideId, rating, feedback);
+        console.log('Authenticated User:', user); // Debugging: Log the authenticated user
+        if (user.role !== 'customer') {
+            throw new UnauthorizedException('Only customers can provide feedback');
+        }
+        return this.rideService.provideFeedback(rideId, rating, feedback, user.userId); // Pass user.userId
     }
 
     /**
