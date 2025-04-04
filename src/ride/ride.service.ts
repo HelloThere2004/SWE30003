@@ -128,8 +128,13 @@ export class RideService {
     /**
      * Get all feedback provided by customers.
      * Accessible by managers.
+     * @param userRole - The role of the user requesting feedback.
      */
-    async getAllFeedback() {
+    async getAllFeedback(userRole: string) {
+        if (userRole !== 'manager') {
+            throw new UnauthorizedException('Only managers can access all feedback');
+        }
+
         return await this.rideRepository.find({
             where: { feedback: Not('') },
             select: ['id', 'feedback', 'rating', 'customer'],
@@ -175,5 +180,41 @@ export class RideService {
         }
 
         return ride;
+    }
+
+    /**
+     * Delete or cancel a ride.
+     * Validates the user's role and permissions before allowing cancellation.
+     * @param rideId - The ID of the ride to be cancelled.
+     * @param userId - The ID of the user requesting cancellation.
+     * @param userRole - The role of the user requesting cancellation.
+     * @throws NotFoundException if the ride is not found.
+     * @throws UnauthorizedException if the user does not have permission to cancel the ride.
+     */
+    async deleteRide(rideId: number, userId: number, userRole: string) {
+        const ride = await this.rideRepository.findOne({ 
+            where: { id: rideId },
+            relations: ['customer', 'driver']
+        });
+
+        if (!ride) {
+            throw new NotFoundException('Ride not found');
+        }
+
+        // Check if the user has permission to cancel the ride
+        if (userRole === 'customer' && ride.customer.id !== userId) {
+            throw new UnauthorizedException('You can only cancel your own rides');
+        }
+        if (userRole === 'driver' && ride.driver?.id !== userId) {
+            throw new UnauthorizedException('You can only cancel rides assigned to you');
+        }
+
+        // Only allow cancellation if ride is in PENDING or ACCEPTED state
+        if (ride.status !== RideStatus.PENDING && ride.status !== RideStatus.ACCEPTED) {
+            throw new UnauthorizedException('Cannot cancel a ride that is in progress or completed');
+        }
+
+        ride.status = RideStatus.CANCELLED;
+        return await this.rideRepository.save(ride);
     }
 }

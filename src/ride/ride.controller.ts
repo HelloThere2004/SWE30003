@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Put, ParseIntPipe, UseGuards, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Put, ParseIntPipe, UseGuards, UnauthorizedException, Delete } from '@nestjs/common';
 import { RideService } from './ride.service';
 import { CreateRideDto } from './dto/create-ride.dto';
 import { RideStatus } from '../entities/ride.entity';
@@ -46,11 +46,18 @@ export class RideController {
 
     /**
      * Get all feedback provided by customers.
-     * Accessible by managers.
+     * Accessible only by managers.
      */
+    @UseGuards(AuthGuard)
     @Get('feedback')
-    getAllFeedback() {
-        return this.rideService.getAllFeedback();
+    getAllFeedback(@CurrentUser() user: any) {
+        if (!user ) {
+            throw new UnauthorizedException('User not authenticated');
+        }
+        if ( user.role !== 'manager') {
+            throw new UnauthorizedException('Only managers can view feedback');
+        }
+        return this.rideService.getAllFeedback(user.role);
     }
 
     /**
@@ -141,4 +148,23 @@ export class RideController {
         return this.rideService.assignDriverToRide(rideId, user.userId); // Use user.userId
     }
 
+    /**
+     * Delete/Cancel a ride.
+     * @param rideId - The ID of the ride to cancel.
+     * @param user - The currently authenticated user.
+     */
+    @UseGuards(AuthGuard)
+    @Delete(':rideId')
+    deleteRide(
+        @Param('rideId', ParseIntPipe) rideId: number,
+        @CurrentUser() user: any,
+    ) {
+        if (!user) {
+            throw new UnauthorizedException('User not authenticated');
+        }
+        if (user.role != 'customer' || user.role != 'driver') {
+            throw new UnauthorizedException('Only customers or drivers can cancel rides');
+        }
+        return this.rideService.deleteRide(rideId, user.userId, user.role);
+    }
 }
