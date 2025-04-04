@@ -154,7 +154,7 @@ export class RideController {
      * @param user - The currently authenticated user.
      */
     @UseGuards(AuthGuard)
-    @Delete(':rideId')
+    @Delete('cancel/:rideId')
     deleteRide(
         @Param('rideId', ParseIntPipe) rideId: number,
         @CurrentUser() user: any,
@@ -162,7 +162,8 @@ export class RideController {
         if (!user) {
             throw new UnauthorizedException('User not authenticated');
         }
-        if (user.role != 'customer' || user.role != 'driver') {
+        // Fix: Change the logical operator from || to &&
+        if (user.role !== 'customer' && user.role !== 'driver') {
             throw new UnauthorizedException('Only customers or drivers can cancel rides');
         }
         return this.rideService.deleteRide(rideId, user.userId, user.role);
