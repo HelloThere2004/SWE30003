@@ -101,6 +101,13 @@ export class RideService {
         if (!ride.driver || ride.driver.id !== driverId) {
             throw new UnauthorizedException('You can only update the status of rides you have accepted');
         }
+        // Add validation for cancelled rides
+        if (ride.status === RideStatus.CANCELLED) {
+            throw new UnauthorizedException('Cannot update status of cancelled rides');
+        }
+        if (ride.status === RideStatus.COMPLETED) {
+            throw new UnauthorizedException('Cannot update status of completed rides');
+        }
         ride.status = status;
         return await this.rideRepository.save(ride);
     }
@@ -119,6 +126,13 @@ export class RideService {
         }
         if (ride.customer.id !== customerId) {
             throw new UnauthorizedException('You can only provide feedback for your own rides');
+        }
+        // Add status check
+        if (ride.status === RideStatus.CANCELLED) {
+            throw new UnauthorizedException('Cannot provide feedback for cancelled rides');
+        }
+        if (ride.status !== RideStatus.COMPLETED) {
+            throw new UnauthorizedException('Can only provide feedback for completed rides');
         }
         ride.rating = rating;
         ride.feedback = feedback;

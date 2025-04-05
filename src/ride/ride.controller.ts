@@ -154,7 +154,7 @@ export class RideController {
      * @param user - The currently authenticated user.
      */
     @UseGuards(AuthGuard)
-    @Delete('cancel/:rideId')
+    @Put('cancel/:rideId')
     deleteRide(
         @Param('rideId', ParseIntPipe) rideId: number,
         @CurrentUser() user: any,
