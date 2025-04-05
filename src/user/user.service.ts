@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
-import { createUserDto } from './dto/createUserDto';
 import { updateUserDto } from './dto/updateUserDto';
 import { SignUpDto } from '../auth/dto/sign-up.dto';
 
@@ -35,12 +34,11 @@ export class UserService {
 
     /**
      * Create a new user in the database.
-     * Handles both SignUpDto and createUserDto.
-     * @param userDto - The details of the user to be created.
+     * @param signUpDto - The details of the user to be created.
      * @returns The created user object.
      */
-    async create(userDto: SignUpDto | createUserDto): Promise<object> {
-        const newUser = this.userRepo.create(userDto);
+    async create(signUpDto: SignUpDto): Promise<object> {
+        const newUser = this.userRepo.create(signUpDto);
         return await this.userRepo.save(newUser);
     }
 
@@ -48,9 +46,8 @@ export class UserService {
      * Create multiple users in the database.
      * @param users - An array of user objects to be created.
      * @returns The created user objects.
-     * Used for testing purposes.
      */
-    async createUsers(users: createUserDto[]): Promise<object[]> {
+    async createUsers(users: SignUpDto[]): Promise<object[]> {
         const newUsers = this.userRepo.create(users);
         return await this.userRepo.save(newUsers);
     }

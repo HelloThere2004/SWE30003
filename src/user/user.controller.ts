@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, Put, Delete, ParseIntPipe } from '@nestjs/common';
-import { createUserDto } from './dto/createUserDto';
+import { SignUpDto } from '../auth/dto/sign-up.dto';
 import { updateUserDto } from './dto/updateUserDto';
 import { UserService } from './user.service';
 
@@ -28,12 +28,12 @@ export class UserController {
 
     /**
      * Create a new user.
-     * @param createUserDto - The details of the user to be created.
+     * @param signUpDto - The details of the user to be created.
      * @returns The created user object.
      */
     @Post('create')
-    create(@Body() createUserDto: createUserDto): object {
-        return this.userService.create(createUserDto);
+    create(@Body() signUpDto: SignUpDto): object {
+        return this.userService.create(signUpDto);
     }
 
     /**
@@ -43,7 +43,7 @@ export class UserController {
      * Used for testing purposes.
      */
     @Post('create-multiple')
-    createUsers(@Body() users: createUserDto[]): Promise<object[]> {
+    createUsers(@Body() users: SignUpDto[]): Promise<object[]> {
         return this.userService.createUsers(users);
     }
 
