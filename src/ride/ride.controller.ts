@@ -154,18 +154,21 @@ export class RideController {
      * @param user - The currently authenticated user.
      */
     @UseGuards(AuthGuard)
+    @UseGuards(AuthGuard)
     @Put('cancel/:rideId')
-    deleteRide(
+    async deleteRide(
         @Param('rideId', ParseIntPipe) rideId: number,
         @CurrentUser() user: any,
-    ) {
+    ): Promise<object> {
         if (!user) {
             throw new UnauthorizedException('User not authenticated');
         }
-        // Fix: Change the logical operator from || to &&
+
+        // Only allow customers and drivers to cancel rides
         if (user.role !== 'customer' && user.role !== 'driver') {
-            throw new UnauthorizedException('Only customers or drivers can cancel rides');
+            throw new UnauthorizedException('Only customers or assigned drivers can cancel rides');
         }
+
         return this.rideService.deleteRide(rideId, user.userId, user.role);
     }
 }

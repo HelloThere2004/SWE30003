@@ -205,29 +205,29 @@ export class RideService {
      * @throws NotFoundException if the ride is not found.
      * @throws UnauthorizedException if the user does not have permission to cancel the ride.
      */
-    async deleteRide(rideId: number, userId: number, userRole: string) {
+    async deleteRide(rideId: number, userId: number, userRole: string): Promise<object> {
         const ride = await this.rideRepository.findOne({ 
             where: { id: rideId },
             relations: ['customer', 'driver']
         });
-
+    
         if (!ride) {
             throw new NotFoundException('Ride not found');
         }
-
-        // Check if the user has permission to cancel the ride
-        if (userRole === 'customer' && ride.customer.id !== userId) {
-            throw new UnauthorizedException('You can only cancel your own rides');
+    
+        // Check if user is the customer who created the ride or the assigned driver
+        const isCustomer = userRole === 'customer' && ride.customer.id === userId;
+        const isAssignedDriver = userRole === 'driver' && ride.driver?.id === userId;
+    
+        if (!isCustomer && !isAssignedDriver) {
+            throw new UnauthorizedException('You can only cancel rides that you created or accepted');
         }
-        if (userRole === 'driver' && ride.driver?.id !== userId) {
-            throw new UnauthorizedException('You can only cancel rides assigned to you');
-        }
-
+    
         // Only allow cancellation if ride is in PENDING or ACCEPTED state
         if (ride.status !== RideStatus.PENDING && ride.status !== RideStatus.ACCEPTED) {
             throw new UnauthorizedException('Cannot cancel a ride that is in progress or completed');
         }
-
+    
         ride.status = RideStatus.CANCELLED;
         return await this.rideRepository.save(ride);
     }
